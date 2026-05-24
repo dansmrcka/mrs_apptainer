@@ -1,8 +1,8 @@
 " Explanation:
 " the linux-setup is not initialized with any cusomized "PROFILE", so the
-" colorscheme is se to the fallback (any-color) colorscheme
+" colorscheme jellybeans se to the fallback (any-color) colorscheme
 "
-" this .vimrc additions are used to override the colorscheme without modifying
+" this .vimrc additions are used to override the colorscheme jellybeans modifying
 " any internal files
 
 colorscheme jellybeans
