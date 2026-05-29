@@ -1,9 +1,9 @@
 " Explanation:
 " the linux-setup is not initialized with any cusomized "PROFILE", so the
-" colorscheme jellybeans se to the fallback (any-color) colorscheme
+" colorscheme raggi se to the fallback (any-color) colorscheme
 "
-" this .vimrc additions are used to override the colorscheme jellybeans modifying
+" this .vimrc additions are used to override the colorscheme raggi modifying
 " any internal files
 
-colorscheme jellybeans
-let g:airline_theme='jellybeans'
+colorscheme raggi
+let g:airline_theme='papercolor'

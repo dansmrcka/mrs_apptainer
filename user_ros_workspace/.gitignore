@@ -1,5 +1,7 @@
 devel/
 build/
+install/
+log/
 logs/
 src/**/
 src/*

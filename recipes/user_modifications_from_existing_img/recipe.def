@@ -8,12 +8,18 @@ From: ../../images/mrs_uav_system.sif
     apt-get -y update
     apt-get -y install vim nnn python3-colcon-mixin python3-pip 
     pip install git+https://github.com/cottsay/colcon-ansi-colors-example --break-system-packages
+    export COLCON_HOME=/opt/colcon
+    mkdir -p $COLCON_HOME
+    colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml || true
+    colcon mixin add mrs https://raw.githubusercontent.com/ctu-mrs/colcon_mixin/refs/heads/master/index.yaml
+    colcon mixin update
 
    
 
 
 %environment
     export LC_ALL=C
+    export COLCON_HOME=/opt/colcon
 
 %runscript
   CMD="${@}"
