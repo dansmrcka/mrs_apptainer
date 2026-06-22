@@ -133,3 +133,6 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ros/jazzy/lib/mrs_gazebo_common_res
 
 source ~/.config/nnn/config.zsh
 export COLCON_DEFAULT_OUTPUT_STYLE=catkin_tools
+
+export RMW_IMPLEMENTATION="rmw_zenoh_cpp"
+source $HOME/git/mrs_uav_development/shell_additions/shell_additions.sh

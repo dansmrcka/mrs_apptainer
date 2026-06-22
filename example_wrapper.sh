@@ -10,8 +10,8 @@ trap 'echo "$0: \"${last_command}\" command failed with exit code $?"' ERR
 # Change the following paths when moving the script and the folders around
 
 # get the path to the current directory
-MRS_APPTAINER_PATH=`dirname "$0"`
-MRS_APPTAINER_PATH=`( cd "$MRS_APPTAINER_PATH" && pwd )`
+MRS_APPTAINER_PATH=$(dirname "$0")
+MRS_APPTAINER_PATH=$( (cd "$MRS_APPTAINER_PATH" && pwd))
 
 # alternatively, set it directly
 # MRS_APPTAINER_PATH=$HOME/git/mrs_apptainer
@@ -25,18 +25,19 @@ MOUNT_PATH="$MRS_APPTAINER_PATH/mount"
 
 # use <file>.sif for normal container
 # use <folder>/ for sandbox container
-CONTAINER_NAME="mrs_uav_system.sif"
+CONTAINER_NAME="mrs_uav_system_modified.sif"
+#CONTAINER_NAME="mrs_uav_system.sif"
 OVERLAY_NAME="mrs_uav_system.img"
 
-CONTAINED=true  # true: will isolate from the HOST's home
+CONTAINED=true # true: will isolate from the HOST's home
 CLEAN_ENV=true # true: will clean the shell environment before runnning container
 
-USE_NVIDIA=false # true: will tell Apptainer that it should use nvidia graphics. Does not work every time.
+USE_NVIDIA=true # true: will tell Apptainer that it should use nvidia graphics. Does not work every time.
 
-# OVERLAY and WRITABLE are mutually exclusive.
+# the following are mutually exclusive
 OVERLAY=false  # true: will load persistant overlay (overlay can be created with scripts/create_overlay.sh)
 WRITABLE=false # true: will run it as --writable (works with --sandbox containers, image can be converted with scripts/convert_sandbox.sh)
-FAKEROOT=false # true: emulate root inside the container, use when you need to e.g. `apt install` packages.
+FAKEROOT=false # true: emulate root inside the container
 
 # defines what should be mounted from the host to the container
 # [TYPE], [SOURCE (host)], [DESTINATION (container)]
@@ -45,6 +46,7 @@ MOUNTS=(
   # mount the custom user workspace into the container
   #           HOST PATH                                  CONTAINER PATH
   "type=bind" "$MRS_APPTAINER_PATH/user_ros_workspace" "/home/$USER/user_ros_workspace"
+  "type=bind" "$HOME/git/f4f/mrs_uav_development" "/home/$USER/git/mrs_uav_development"
 
   # mount the MRS shell additions into the container, DO NOT MODIFY
   "type=bind" "$MOUNT_PATH" "/opt/mrs/host"
@@ -53,6 +55,9 @@ MOUNTS=(
   "type=bind" "/tmp/.X11-unix" "/tmp/.X11-unix"
   "type=bind" "/dev/dri" "/dev/dri"
   "type=bind" "$HOME/.Xauthority" "/home/$USER/.Xauthority"
+  "type=bind" "$HOME/.tmux.conf" "/home/$USER/.tmux.conf"
+  "type=bind" "$HOME/.config/nnn" "/home/$USER/.config/nnn"
+
 )
 
 ## | ------------------ advanced user config ------------------ |
@@ -75,7 +80,7 @@ CONTAINER_PATH=$IMAGES_PATH/$CONTAINER_NAME
 if $OVERLAY; then
 
   if [ ! -e $OVERLAYS_PATH/$OVERLAY_NAME ]; then
-    echo "Overlay file does not exist, initialize it with the 'scripts/create_overlay.sh' script"
+    echo "Overlay file does not exist, initialize it with the 'create_fs_overlay.sh' script"
     exit 1
   fi
 
@@ -124,7 +129,7 @@ fi
 
 # if we want nvidia, add the "--nv" arg
 if $USE_NVIDIA; then
-  NVIDIA_ARG="--nv"
+  NVIDIA_ARG="--nv --env __NV_PRIME_RENDER_OFFLOAD=1 --env __GLX_VENDOR_LIBRARY_NAME=nvidia --env __VK_LAYER_NV_optimus=NVIDIA_only"
 else
   NVIDIA_ARG=""
 fi
@@ -147,19 +152,18 @@ MOUNT_ARG=""
 if ! $WRITABLE; then
 
   # prepare the mounting points, resolve the full paths
-  for ((i=0; i < ${#MOUNTS[*]}; i++));
-  do
-    ((i%3==0)) && TYPE[$i/3]="${MOUNTS[$i]}"
-    ((i%3==1)) && SOURCE[$i/3]="${MOUNTS[$i]}"
-    ((i%3==2)) && DESTINATION[$i/3]="${MOUNTS[$i]}"
+  for ((i = 0; i < ${#MOUNTS[*]}; i++)); do
+    ((i % 3 == 0)) && TYPE[$i / 3]="${MOUNTS[$i]}"
+    ((i % 3 == 1)) && SOURCE[$i / 3]="${MOUNTS[$i]}"
+    ((i % 3 == 2)) && DESTINATION[$i / 3]="${MOUNTS[$i]}"
   done
 
-  for ((i=0; i < ${#TYPE[*]}; i++)); do
+  for ((i = 0; i < ${#TYPE[*]}; i++)); do
 
     if test -e ${SOURCE[$i]}; then
 
-      FULL_SOURCE=$( realpath -e ${SOURCE[$i]} )
-      FULL_DESTINATION=$( realpath -ms ${DESTINATION[$i]} )
+      FULL_SOURCE=$(realpath -e ${SOURCE[$i]})
+      FULL_DESTINATION=$(realpath -ms ${DESTINATION[$i]})
 
       MOUNT_ARG="$MOUNT_ARG --mount ${TYPE[$i]},source=$FULL_SOURCE,destination=$FULL_DESTINATION"
 
@@ -193,7 +197,7 @@ fi
 # this will set $DISPLAY in the container to the same value as on your host machine
 export APPTAINERENV_DISPLAY=$DISPLAY
 
-xhost + > /dev/null 2>&1
+xhost + >/dev/null 2>&1
 
 $EXEC_CMD apptainer $ACTION \
   $NVIDIA_ARG \
@@ -208,4 +212,4 @@ $EXEC_CMD apptainer $ACTION \
   $CONTAINER_PATH \
   $CMD
 
-xhost - > /dev/null 2>&1
+xhost - >/dev/null 2>&1

@@ -1,8 +1,5 @@
 build:
-  symlink-install: True # link configs and other files to install folder
-  continue-on-error: True # build the rest of the packages if one fails
-  executor: parallel # enable parallel package building
-  parallel-workers: 4 # maximum packages build in parallel (increase if good CPU)
   mixin:
-    - rel-with-deb-info # display more info when failed
-    - compile-commands # generate compile commands
+    - rel-with-deb-info
+    - compile-commands
+  allow-overriding: []
